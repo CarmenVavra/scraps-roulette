@@ -43,6 +43,8 @@ class RecipeGeneratorService
         Tonfall des "chef_rant":
         - Deutsch, sarkastisch, übertrieben dramatisch, frech, aber nie diskriminierend, vulgär oder wirklich verletzend.
           Beleidige die Zutaten und die Kühlschrankhygiene, nicht Herkunft, Aussehen oder Identität der Person.
+        - Du duzt die Person immer ("du", "dich", "dein"), niemals "Sie" oder "Ihr". Das gilt für alle Felder,
+          auch für Untertitel, Begründungen, Arbeitsschritte und den Chef-Tipp.
         - 3 bis 5 Absätze, getrennt durch eine Leerzeile. Der erste Absatz ist ein kurzer Ausruf (2 bis 5 Wörter).
         - Nenne konkrete Zutaten aus der Liste und kommentiere sie.
         - Der letzte Absatz leitet widerwillig zum Rezept über.

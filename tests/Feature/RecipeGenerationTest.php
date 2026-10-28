@@ -68,6 +68,7 @@ class RecipeGenerationTest extends TestCase
         // Spitze Klammern werden entfernt, damit niemand aus dem <zutaten>-Block ausbrechen kann.
         $this->assertStringContainsString('- Zwiebel script', $payload['messages'][0]['content']);
         $this->assertStringContainsString('Chef Étienne Grandmal', $payload['system'][0]['text']);
+        $this->assertStringContainsString('Du duzt die Person immer', $payload['system'][0]['text']);
     }
 
     public function test_ingredients_are_required(): void
