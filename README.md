@@ -76,12 +76,13 @@ npm run build
 
 ## Deployment (netcup)
 
-Einmalig:
+Einmalig in Plesk für `scrapsroulette.caryssa.at`:
 
-1. In Plesk die Subdomain `scrapsroulette.caryssa.at` anlegen, **Document Root** auf `scrapsroulette.caryssa.at/public` stellen, PHP ≥ 8.2 wählen, SSL (Let's Encrypt) aktivieren.
-2. SSH-Zugang aktivieren und den eigenen Public Key hinterlegen.
-3. In `deploy.sh` oben `DEPLOY_HOST`, `DEPLOY_USER` (und ggf. `DEPLOY_PATH`, `DEPLOY_PHP`) eintragen.
-4. In `.env.production` (nicht im Git) `ANTHROPIC_API_KEY` und die `LEGAL_*`-Angaben eintragen.
+1. **Dokumentstamm**: `scrapsroulette.caryssa.at/scrapsroulette-app/public`
+2. **PHP 8.3** wählen und in den PHP-Einstellungen `open_basedir` auf `{WEBSPACEROOT}{/}{:}{TMP}{/}` setzen (sonst liefert jede Seite 500).
+3. **SSL**: Let's Encrypt aktivieren, „HTTP → HTTPS umleiten“ einschalten.
+
+Lokal in `.env.production` (nicht im Git) `ANTHROPIC_API_KEY`, die `LEGAL_*`-Angaben und die `DEPLOY_*`-Zugangsdaten (SSH-Host, User, Pfad, PHP-CLI) pflegen. SSH läuft über den hinterlegten SSH-Key.
 
 Danach jedes Mal (Git Bash):
 
@@ -89,4 +90,4 @@ Danach jedes Mal (Git Bash):
 ./deploy.sh
 ```
 
-Das Skript testet, baut, lädt hoch, setzt die `.env`, migriert, cached und prüft `/up`.
+Das Skript testet, baut, lädt hoch, setzt die `.env`, migriert, cached Routen/Events und prüft `/up`. `config:cache` und `view:cache` werden bewusst nicht verwendet, weil die SSH-Shell bei netcup chrooted ist und andere absolute Pfade sieht als der Webserver.

@@ -15,25 +15,16 @@
 #
 # Voraussetzungen:
 #   - SSH-Zugang zum netcup Webhosting mit SSH-Key (keine Passwortabfrage).
-#   - Lokale Datei .env.production (wird auf dem Server zur .env).
-#   - In Plesk: Document Root der Subdomain auf "<DEPLOY_PATH>/public" setzen, PHP >= 8.2.
-#
-# Alle Werte unten lassen sich per Umgebungsvariable überschreiben, z. B.
-#   DEPLOY_HOST=hosting123456.a2e1c.netcup.net DEPLOY_USER=hosting123456 ./deploy.sh
+#   - Lokale Datei .env.production (gitignored, wird auf dem Server zur .env). Sie enthält
+#     auch die SSH-Zugangsdaten (DEPLOY_HOST, DEPLOY_USER, …), damit diese nicht im
+#     öffentlichen Repository landen.
+#   - In Plesk für die Subdomain:
+#       Dokumentstamm  = <DEPLOY_PATH>/public
+#       PHP            = 8.3 (mind. 8.2)
+#       open_basedir   = {WEBSPACEROOT}{/}{:}{TMP}{/}   (sonst 500er, PHP sieht nur public/)
+#       SSL            = Let's Encrypt + HTTP → HTTPS umleiten
 
 set -euo pipefail
-
-# ─── Konfiguration ──────────────────────────────────────────────────────────
-DEPLOY_HOST="${DEPLOY_HOST:-HOSTNAME.netcup.net}"           # SSH-Host aus dem netcup CCP / Plesk
-DEPLOY_USER="${DEPLOY_USER:-hostingXXXXXX}"                 # SSH-Benutzer
-DEPLOY_PORT="${DEPLOY_PORT:-22}"
-DEPLOY_PATH="${DEPLOY_PATH:-scrapsroulette.caryssa.at}"     # App-Ordner relativ zum SSH-Home
-DEPLOY_PHP="${DEPLOY_PHP:-php}"                             # PHP-CLI auf dem Server (>= 8.2)
-APP_URL="${APP_URL:-https://scrapsroulette.caryssa.at}"
-# ────────────────────────────────────────────────────────────────────────────
-
-SKIP_TESTS=0
-[[ "${1:-}" == "--skip-tests" ]] && SKIP_TESTS=1
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$ROOT"
@@ -41,10 +32,30 @@ cd "$ROOT"
 step() { printf '\n\033[1;31m▶ %s\033[0m\n' "$*"; }
 fail() { printf '\n\033[1;31m✖ %s\033[0m\n' "$*" >&2; exit 1; }
 
-if [[ "$DEPLOY_HOST" == "HOSTNAME.netcup.net" || "$DEPLOY_USER" == "hostingXXXXXX" ]]; then
-    fail "Bitte DEPLOY_HOST und DEPLOY_USER oben in deploy.sh eintragen."
-fi
 [[ -f .env.production ]] || fail ".env.production fehlt (Vorlage: .env.example)."
+
+# Liest einen Wert aus .env.production; Umgebungsvariablen haben Vorrang.
+env_value() {
+    local value
+    value="$(grep -E "^$1=" .env.production | tail -n1 | cut -d= -f2- | sed -e 's/^["'\'']//' -e 's/["'\'']$//' || true)"
+    printf '%s' "${!1:-$value}"
+}
+
+# ─── Konfiguration (aus .env.production) ────────────────────────────────────
+DEPLOY_HOST="$(env_value DEPLOY_HOST)"                      # SSH-Host aus dem netcup CCP / Plesk
+DEPLOY_USER="$(env_value DEPLOY_USER)"                      # SSH-Benutzer
+DEPLOY_PORT="$(env_value DEPLOY_PORT)"; DEPLOY_PORT="${DEPLOY_PORT:-22}"
+DEPLOY_PATH="$(env_value DEPLOY_PATH)"                      # App-Ordner relativ zum SSH-Home
+DEPLOY_PATH="${DEPLOY_PATH:-scrapsroulette.caryssa.at/scrapsroulette-app}"
+DEPLOY_PHP="$(env_value DEPLOY_PHP)"; DEPLOY_PHP="${DEPLOY_PHP:-php}"   # PHP-CLI (>= 8.2)
+APP_URL="$(env_value APP_URL)"
+# ────────────────────────────────────────────────────────────────────────────
+
+SKIP_TESTS=0
+[[ "${1:-}" == "--skip-tests" ]] && SKIP_TESTS=1
+
+[[ -n "$DEPLOY_HOST" && -n "$DEPLOY_USER" ]] || fail "DEPLOY_HOST und DEPLOY_USER in .env.production eintragen."
+[[ "$APP_URL" == https://* ]] || fail "APP_URL in .env.production muss mit https:// beginnen."
 grep -qE '^ANTHROPIC_API_KEY=.+' .env.production || fail "ANTHROPIC_API_KEY ist in .env.production leer."
 grep -qE '^APP_KEY=base64:' .env.production || fail "APP_KEY fehlt in .env.production (php artisan key:generate --show)."
 
@@ -118,7 +129,10 @@ chmod -R u+rwX,g+rwX storage bootstrap/cache database
 "\$PHP" artisan package:discover --ansi
 "\$PHP" artisan migrate --force
 "\$PHP" artisan optimize:clear
-"\$PHP" artisan optimize
+# Kein config:cache / view:cache: Die SSH-Shell ist chrooted und sieht andere absolute
+# Pfade als der Webserver – gecachte Pfade würden im Web zu 500-Fehlern führen.
+"\$PHP" artisan route:cache
+"\$PHP" artisan event:cache
 "\$PHP" artisan up
 trap - EXIT
 echo "Release \$(cat REVISION) ist aktiv."
