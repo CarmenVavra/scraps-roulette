@@ -69,12 +69,12 @@ npm run build
 
 step "Release zusammenstellen"
 STAGE="$(mktemp -d)"
-trap 'rm -rf "$STAGE"' EXIT
+trap 'rm -rf "${STAGE:?}" "${STAGE:?}.tar.gz"' EXIT
 git archive HEAD | tar -x -C "$STAGE"
 cp -r public/build "$STAGE/public/build"
-rm -rf "$STAGE/tests" "$STAGE/UI_Mockups" "$STAGE/.claude" "$STAGE/node_modules" \
-       "$STAGE/deploy.sh" "$STAGE"/*.bat "$STAGE/phpunit.xml" "$STAGE/phpstan.neon" "$STAGE/CLAUDE.md"
-composer install --working-dir="$STAGE" --no-dev --optimize-autoloader --classmap-authoritative \
+rm -rf "${STAGE:?}/tests" "${STAGE:?}/UI_Mockups" "${STAGE:?}/.claude" "${STAGE:?}/node_modules" \
+       "${STAGE:?}/deploy.sh" "${STAGE:?}"/*.bat "${STAGE:?}/phpunit.xml" "${STAGE:?}/phpstan.neon" "${STAGE:?}/CLAUDE.md"
+composer install --working-dir="$STAGE" --no-dev --optimize-autoloader \
     --no-interaction --no-progress --no-scripts
 echo "$REVISION" > "$STAGE/REVISION"
 tar -czf "$STAGE.tar.gz" -C "$STAGE" .
@@ -86,7 +86,6 @@ TARGET="$DEPLOY_USER@$DEPLOY_HOST"
 step "Hochladen nach $TARGET"
 scp -P "$DEPLOY_PORT" -o BatchMode=yes -q "$STAGE.tar.gz" "$TARGET:scraps-release.tar.gz"
 scp -P "$DEPLOY_PORT" -o BatchMode=yes -q .env.production "$TARGET:scraps-release.env"
-rm -f "$STAGE.tar.gz"
 
 step "Release auf dem Server aktivieren"
 # shellcheck disable=SC2087 # Variablen werden bewusst lokal eingesetzt.
