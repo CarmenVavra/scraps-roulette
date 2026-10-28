@@ -58,7 +58,7 @@ class RecipeGenerationTest extends TestCase
         $this->postJson(route('recipes.generate'), ['ingredients' => ['Senf', 'Zwiebel <script>']])->assertOk();
 
         $payload = $this->sentRequests[0];
-        $this->assertSame('claude-opus-5-5', $payload['model']);
+        $this->assertSame('claude-haiku-5-5', $payload['model']);
         $this->assertSame('json_schema', $payload['output_config']['format']['type']);
         $this->assertSame(
             ['chef_rant', 'recipe_title', 'used_ingredients', 'prep_time', 'steps'],
@@ -244,7 +244,7 @@ class RecipeGenerationTest extends TestCase
             'id' => 'msg_test',
             'type' => 'message',
             'role' => 'assistant',
-            'model' => 'claude-opus-5-5',
+            'model' => 'claude-haiku-5-5',
             'content' => $stopReason === 'refusal' ? [] : [
                 ['type' => 'text', 'text' => is_array($text) ? json_encode($text, JSON_THROW_ON_ERROR) : $text],
             ],

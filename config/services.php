@@ -33,7 +33,7 @@ return [
     */
     'anthropic' => [
         'api_key' => env('ANTHROPIC_API_KEY'),
-        'model' => env('ANTHROPIC_MODEL', 'claude-opus-5-5'),
+        'model' => env('ANTHROPIC_MODEL', 'claude-haiku-5-5'),
         'effort' => env('ANTHROPIC_EFFORT', 'low'),
         'max_tokens' => (int) env('ANTHROPIC_MAX_TOKENS', 8000),
         'timeout' => (float) env('ANTHROPIC_TIMEOUT', 90),

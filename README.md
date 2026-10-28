@@ -7,7 +7,7 @@ Live: <https://scrapsroulette.caryssa.at>
 ## Stack
 
 - Laravel 12 (PHP ≥ 8.2), Blade-Komponenten, Alpine.js, Tailwind CSS 4 (Vite)
-- Anthropic PHP SDK (`anthropic-ai/sdk`) mit Structured Outputs (JSON-Schema)
+- Anthropic PHP SDK (`anthropic-ai/sdk`) mit Structured Outputs (JSON-Schema), Modell Claude Haiku 5.5 (`ANTHROPIC_MODEL`)
 - Schrift Archivo lokal eingebunden (`@fontsource/archivo`), keine externen Requests
 
 ## Lokal starten
