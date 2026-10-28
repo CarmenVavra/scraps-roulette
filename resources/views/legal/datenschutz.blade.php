@@ -43,6 +43,12 @@
             Inaktivität ungültig. Rechtsgrundlage ist § 165 Abs. 3 TKG 2021 sowie Art. 6 Abs. 1 lit. f DSGVO. Eine Einwilligung
             ist dafür nicht erforderlich.
         </p>
+        <p>
+            Damit du ScrapsRoulette als App auf deinem Gerät installieren kannst, legt dein Browser einen sogenannten
+            Service Worker an und speichert darin eine Offline-Hinweisseite und das App-Icon. Diese Daten bleiben auf
+            deinem Gerät, enthalten nichts über dich und werden nicht an uns übertragen. Du kannst sie jederzeit über die
+            Browsereinstellungen („Websitedaten löschen“) entfernen.
+        </p>
 
         <h2>5. Rezepterstellung mit künstlicher Intelligenz</h2>
         <p>

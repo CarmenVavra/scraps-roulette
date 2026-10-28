@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- ScrapsRoulette App-Icon: Roulette-Rad aus dem Roulette-Button auf Akzent-Rot.
+       Das Rad liegt innerhalb der Safe-Zone (Radius < 40 %), damit es auch als "maskable" Icon passt. -->
+  <rect width="512" height="512" fill="#ec3013"/>
+  <circle cx="256" cy="256" r="150" fill="none" stroke="#f3f2f2" stroke-width="18"/>
+  <path fill="#f3f2f2" d="M256 256L256 106A150 150 0 0 1 362.07 149.93ZM256 256L406 256A150 150 0 0 1 362.07 362.07ZM256 256L256 406A150 150 0 0 1 149.93 362.07ZM256 256L106 256A150 150 0 0 1 149.93 149.93Z"/>
+  <circle cx="256" cy="256" r="31" fill="#ec3013" stroke="#f3f2f2" stroke-width="18"/>
+</svg>

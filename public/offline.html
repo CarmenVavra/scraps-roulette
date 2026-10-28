@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#ec3013">
+    <title>Offline · ScrapsRoulette</title>
+    <link rel="icon" href="/app-icons/app-icon.svg" type="image/svg+xml">
+    <style>
+        body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #ec3013; color: #201e1d;
+               font: 18px/1.5 system-ui, sans-serif; }
+        main { max-width: 32rem; margin: 20px; padding: 32px; background: #f3f2f2; border: 2px solid #201e1d; transform: rotate(-0.6deg); }
+        h1 { margin: 0 0 12px; font-size: 32px; line-height: 1.1; text-transform: uppercase; }
+        p { margin: 0 0 16px; }
+        button { font: inherit; font-weight: 800; padding: 12px 20px; border: 2px solid #ec3013; background: #ec3013; color: #f3f2f2; cursor: pointer; }
+        button:hover { background: #ae1800; border-color: #ae1800; }
+        button:focus-visible { outline: 2px solid #201e1d; outline-offset: 4px; }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>Kein Netz. Keine Gnade.</h1>
+        <p>Der Chefkoch braucht eine Internetverbindung, um deine Reste zu beurteilen. Ohne Netz steht er nur beleidigt in der Ecke.</p>
+        <button type="button" onclick="location.reload()">Nochmal versuchen</button>
+    </main>
+</body>
+</html>

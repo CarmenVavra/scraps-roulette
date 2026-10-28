@@ -13,6 +13,13 @@
     <meta name="theme-color" content="#ec3013">
     <title>{{ $title ? $title.' · ' : '' }}ScrapsRoulette</title>
     <link rel="icon" href="{{ asset('favicon.svg') }}" type="image/svg+xml">
+    <link rel="icon" href="{{ asset('app-icons/favicon-32.png') }}" sizes="32x32" type="image/png">
+    <link rel="apple-touch-icon" href="{{ asset('app-icons/apple-touch-icon.png') }}">
+    <link rel="manifest" href="{{ asset('manifest.webmanifest') }}">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="ScrapsRoulette">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="min-h-screen">

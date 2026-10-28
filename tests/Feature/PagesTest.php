@@ -63,6 +63,32 @@ class PagesTest extends TestCase
             ->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', false);
     }
 
+    public function test_the_page_links_the_app_manifest_and_icons(): void
+    {
+        $this->get(route('home'))
+            ->assertOk()
+            ->assertSee('rel="manifest"', false)
+            ->assertSee('manifest.webmanifest', false)
+            ->assertSee('app-icons/apple-touch-icon.png', false);
+    }
+
+    public function test_the_app_manifest_is_valid_and_its_icons_exist(): void
+    {
+        $manifest = json_decode((string) file_get_contents(public_path('manifest.webmanifest')), true, flags: JSON_THROW_ON_ERROR);
+
+        $this->assertSame('ScrapsRoulette', $manifest['name']);
+        $this->assertSame('standalone', $manifest['display']);
+        $this->assertContains('maskable', array_column($manifest['icons'], 'purpose'));
+
+        foreach ($manifest['icons'] as $icon) {
+            $this->assertStringStartsWith('/app-icons/', $icon['src']);
+            $this->assertFileExists(public_path(ltrim($icon['src'], '/')));
+        }
+
+        $this->assertFileExists(public_path('sw.js'));
+        $this->assertFileExists(public_path('offline.html'));
+    }
+
     public function test_the_generate_endpoint_only_accepts_post(): void
     {
         $this->getJson(route('recipes.generate'))->assertStatus(405);
