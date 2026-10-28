@@ -128,11 +128,10 @@ chmod -R u+rwX,g+rwX storage bootstrap/cache database
 
 "\$PHP" artisan package:discover --ansi
 "\$PHP" artisan migrate --force
+# Bewusst keine Caches (config/route/view/event): Die SSH-Shell ist chrooted und sieht andere
+# absolute Pfade als der Webserver. Selbst der Routen-Cache enthält solche Pfade (z. B. /up)
+# und führt dann zu open_basedir-Fehlern. Für eine Seite dieser Größe ist das ohne Belang.
 "\$PHP" artisan optimize:clear
-# Kein config:cache / view:cache: Die SSH-Shell ist chrooted und sieht andere absolute
-# Pfade als der Webserver – gecachte Pfade würden im Web zu 500-Fehlern führen.
-"\$PHP" artisan route:cache
-"\$PHP" artisan event:cache
 "\$PHP" artisan up
 trap - EXIT
 echo "Release \$(cat REVISION) ist aktiv."

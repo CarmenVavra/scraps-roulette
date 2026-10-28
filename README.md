@@ -90,4 +90,4 @@ Danach jedes Mal (Git Bash):
 ./deploy.sh
 ```
 
-Das Skript testet, baut, lädt hoch, setzt die `.env`, migriert, cached Routen/Events und prüft `/up`. `config:cache` und `view:cache` werden bewusst nicht verwendet, weil die SSH-Shell bei netcup chrooted ist und andere absolute Pfade sieht als der Webserver.
+Das Skript testet, baut, lädt hoch, setzt die `.env`, migriert und prüft `/up`. Laravel-Caches (`config`, `route`, `view`, `event`) werden bewusst nicht verwendet, weil die SSH-Shell bei netcup chrooted ist und andere absolute Pfade sieht als der Webserver.
