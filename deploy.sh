@@ -113,9 +113,10 @@ if [ -f artisan ] && [ -f .env ]; then
     trap '"\$PHP" artisan up || true' EXIT
 fi
 
-# Code ersetzen, Laufzeitdaten (storage, SQLite-Datenbank) behalten.
+# Code ersetzen, Laufzeitdaten (storage, SQLite-Datenbank) behalten. public/ wird komplett
+# getauscht, damit z. B. Plesks Platzhalter-index.html nicht vor index.php ausgeliefert wird.
 rm -rf app bootstrap/cache config database/migrations database/seeders database/factories \
-       lang public/build resources routes vendor
+       lang public resources routes vendor
 tar -xzf ~/scraps-release.tar.gz -C .
 mv -f ~/scraps-release.env .env
 chmod 600 .env
