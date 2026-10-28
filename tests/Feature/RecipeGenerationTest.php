@@ -120,7 +120,10 @@ class RecipeGenerationTest extends TestCase
 
     public function test_invalid_json_from_the_model_is_handled(): void
     {
-        $this->fakeClaude([new Response(200, ['Content-Type' => 'application/json'], $this->claudeBody('Das ist kein JSON, Monsieur.'))]);
+        $this->fakeClaude([
+            new Response(200, ['Content-Type' => 'application/json'], $this->claudeBody('Das ist kein JSON, Monsieur.')),
+            new Response(200, ['Content-Type' => 'application/json'], $this->claudeBody('Das ist kein JSON, Monsieur.')),
+        ]);
 
         $this->postJson(route('recipes.generate'), ['ingredients' => ['Senf', 'Eier']])
             ->assertStatus(503)
@@ -129,11 +132,46 @@ class RecipeGenerationTest extends TestCase
 
     public function test_json_with_missing_fields_is_handled(): void
     {
-        $this->fakeClaude([new Response(200, ['Content-Type' => 'application/json'], $this->claudeBody(['chef_rant' => 'Nein.']))]);
+        $this->fakeClaude([
+            new Response(200, ['Content-Type' => 'application/json'], $this->claudeBody(['chef_rant' => 'Nein.'])),
+            new Response(200, ['Content-Type' => 'application/json'], $this->claudeBody(['chef_rant' => 'Nein.'])),
+        ]);
 
         $this->postJson(route('recipes.generate'), ['ingredients' => ['Senf', 'Eier']])
             ->assertStatus(503)
             ->assertJsonPath('message', ChefRageException::GIBBERISH);
+    }
+
+    public function test_a_too_short_rant_is_requested_again(): void
+    {
+        $short = ['chef_rant' => 'Ach du ==meine Güte.=='] + $this->validRecipe();
+
+        $this->fakeClaude([
+            new Response(200, ['Content-Type' => 'application/json'], $this->claudeBody($short)),
+            new Response(200, ['Content-Type' => 'application/json'], $this->claudeBody($this->validRecipe())),
+        ]);
+
+        $this->postJson(route('recipes.generate'), ['ingredients' => ['Senf', 'Eier']])
+            ->assertOk()
+            ->assertJsonPath('recipe.chef_rant', $this->validRecipe()['chef_rant']);
+
+        $this->assertCount(2, $this->sentRequests);
+    }
+
+    public function test_a_too_short_rant_twice_returns_a_chef_message(): void
+    {
+        $short = ['chef_rant' => 'Ach du ==meine Güte.=='] + $this->validRecipe();
+
+        $this->fakeClaude([
+            new Response(200, ['Content-Type' => 'application/json'], $this->claudeBody($short)),
+            new Response(200, ['Content-Type' => 'application/json'], $this->claudeBody($short)),
+        ]);
+
+        $this->postJson(route('recipes.generate'), ['ingredients' => ['Senf', 'Eier']])
+            ->assertStatus(503)
+            ->assertJsonPath('message', ChefRageException::GIBBERISH);
+
+        $this->assertCount(2, $this->sentRequests);
     }
 
     public function test_a_refusal_is_handled(): void
@@ -264,7 +302,8 @@ class RecipeGenerationTest extends TestCase
     private function validRecipe(): array
     {
         return [
-            'chef_rant' => "Ach du ==meine Güte.==\n\n**Blumenkohl** und ~~Gummibärchen~~? Das ist ein !!Tatort.!!\n\n__Schreib mit, du Genie.__",
+            'chef_rant' => "Ach du ==meine Güte.==\n\n**Blumenkohl** und ~~Gummibärchen~~? Das ist kein Kühlschrank, das ist ein !!Tatort.!!\n\n"
+                ."Ich habe in Lyon Sterne verteidigt, und du schickst mir Süßkram neben Gemüse.\n\n__Schreib mit, du Genie.__",
             'recipe_title' => 'Blumenkohl im Senf-Brösel-Mantel',
             'used_ingredients' => ['Blumenkohl', 'Eier'],
             'prep_time' => '35 Min',

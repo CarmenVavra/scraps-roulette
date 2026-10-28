@@ -22,6 +22,14 @@ use Illuminate\Support\Facades\Validator;
  */
 class RecipeGeneratorService
 {
+    /** Versuche insgesamt, wenn die KI inhaltlich Unbrauchbares liefert. */
+    public const MAX_ATTEMPTS = 2;
+
+    /** Mindestanforderung an den Rant: Ausruf plus mindestens zwei weitere Absätze. */
+    public const MIN_RANT_PARAGRAPHS = 3;
+
+    public const MIN_RANT_LENGTH = 150;
+
     /**
      * Rollenbeschreibung des Chefkochs. Bleibt pro Anfrage unverändert,
      * damit das Prompt-Caching greifen kann.
@@ -45,12 +53,14 @@ class RecipeGeneratorService
           Beleidige die Zutaten und die Kühlschrankhygiene, nicht Herkunft, Aussehen oder Identität der Person.
         - Du duzt die Person immer ("du", "dich", "dein"), niemals "Sie" oder "Ihr". Das gilt für alle Felder,
           auch für Untertitel, Begründungen, Arbeitsschritte und den Chef-Tipp.
-        - 3 bis 5 Absätze, getrennt durch eine Leerzeile. Der erste Absatz ist ein kurzer Ausruf (2 bis 5 Wörter).
+        - Länge: insgesamt 80 bis 180 Wörter in 4 bis 5 Absätzen, getrennt durch eine Leerzeile.
+          Absatz 1 ist ein kurzer, eigener Ausruf (2 bis 5 Wörter), der zu genau diesen Zutaten passt.
+          Danach folgen mindestens drei weitere Absätze. Ein Rant, der nur aus dem Ausruf besteht, ist unbrauchbar.
         - Nenne konkrete Zutaten aus der Liste und kommentiere sie.
         - Der letzte Absatz leitet widerwillig zum Rezept über.
         - Hervorhebungen setzt du mit diesen Markierungen (sparsam, jeweils höchstens zweimal):
           **Text** = fette, rote Betonung
-          ==Text== = schwarzer Balken (gut für den ersten Ausruf, z. B. "Ach du ==meine Güte.==")
+          ==Text== = schwarzer Balken (gut für zwei, drei Wörter im Ausruf)
           !!Text!! = roter Stempel für ein einzelnes Wort (z. B. "!!Tatort.!!")
           ~~Text~~ = durchgestrichen (für aussortierte Zutaten)
           __Text__ = unterstrichen (für den letzten Satz)
@@ -99,23 +109,33 @@ class RecipeGeneratorService
             throw ChefRageException::closed();
         }
 
-        $message = $this->requestRecipe($ingredients);
+        // Unbrauchbare Inhalte (kaputtes JSON, zu kurzer Rant) werden einmal neu angefragt.
+        // API-Fehler und Ablehnungen werden dagegen sofort gemeldet.
+        for ($attempt = 1; ; $attempt++) {
+            $message = $this->requestRecipe($ingredients);
 
-        if ($message->stopReason === 'refusal') {
-            Log::warning('RecipeGenerator: Anfrage wurde vom Modell abgelehnt.', [
-                'category' => $message->stopDetails?->category,
-            ]);
+            if ($message->stopReason === 'refusal') {
+                Log::warning('RecipeGenerator: Anfrage wurde vom Modell abgelehnt.', [
+                    'category' => $message->stopDetails?->category,
+                ]);
 
-            throw ChefRageException::refused();
+                throw ChefRageException::refused();
+            }
+
+            try {
+                if ($message->stopReason === 'max_tokens') {
+                    Log::warning('RecipeGenerator: Antwort wurde wegen max_tokens abgeschnitten.');
+
+                    throw ChefRageException::gibberish();
+                }
+
+                return $this->parseRecipe($this->extractText($message));
+            } catch (ChefRageException $e) {
+                if ($attempt >= self::MAX_ATTEMPTS) {
+                    throw $e;
+                }
+            }
         }
-
-        if ($message->stopReason === 'max_tokens') {
-            Log::warning('RecipeGenerator: Antwort wurde wegen max_tokens abgeschnitten.');
-
-            throw ChefRageException::gibberish();
-        }
-
-        return $this->parseRecipe($this->extractText($message));
     }
 
     /**
@@ -309,6 +329,15 @@ class RecipeGeneratorService
 
         /** @var array<string, mixed> $valid */
         $valid = $validator->validated();
+
+        $rant = trim((string) $valid['chef_rant']);
+        $paragraphs = count(array_filter(preg_split('/\n\s*\n/', $rant) ?: [], fn (string $p): bool => trim($p) !== ''));
+
+        if ($paragraphs < self::MIN_RANT_PARAGRAPHS || mb_strlen($rant) < self::MIN_RANT_LENGTH) {
+            Log::warning('RecipeGenerator: Rant ist zu kurz.', ['paragraphs' => $paragraphs, 'length' => mb_strlen($rant)]);
+
+            throw ChefRageException::gibberish();
+        }
 
         return [
             'chef_rant' => trim((string) $valid['chef_rant']),
