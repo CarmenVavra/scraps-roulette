@@ -4,7 +4,7 @@
  * Macht die Seite als App installierbar. Rezepte brauchen immer Internet (KI),
  * daher wird nichts Dynamisches gecacht – nur eine Offline-Seite und die Icons.
  */
-const CACHE = 'scrapsroulette-v1';
+const CACHE = 'scrapsroulette-v2';
 const OFFLINE_URL = '/offline.html';
 const PRECACHE = [OFFLINE_URL, '/app-icons/icon-192.png', '/app-icons/app-icon.svg'];
 

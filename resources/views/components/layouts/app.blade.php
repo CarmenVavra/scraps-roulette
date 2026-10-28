@@ -30,7 +30,7 @@
     <header class="border-b-2 border-ink print:hidden">
         <div class="mx-auto flex max-w-[1240px] items-stretch justify-between px-5 sm:px-8">
             <a href="{{ route('home') }}" class="flex items-center gap-3 py-4 text-ink no-underline hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent" aria-label="ScrapsRoulette – Startseite">
-                <span class="grid h-9 w-9 place-items-center bg-accent text-lg font-extrabold text-ground" aria-hidden="true">S</span>
+                <x-app-logo />
                 <span class="font-display text-xl font-extrabold tracking-tight">Scraps<em class="italic text-orange-600">Roulette</em></span>
             </a>
             <p class="m-0 hidden items-center border-l-2 border-ink pl-6 text-sm text-ink/70 sm:flex">Restekoch mit Charakter · Beschwerden unerwünscht</p>
